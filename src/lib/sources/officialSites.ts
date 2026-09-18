@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { cleanTitle } from "../dedupe";
 import type { NewsItem, SourceAdapter } from "./types";
 
 // 匹配博达 CMS 详情页（相对或绝对路径）：info/{cat}/{id}.htm，及上交风格 /{section}/{YYYYMMDD}/{id}.html
@@ -69,7 +70,7 @@ export function parseOfficialList(
     const best = v.titles.find((t) => t.length >= 10) ?? v.titles[0];
     items.push({
       sourceId: meta.sourceId,
-      title: best,
+      title: cleanTitle(best),
       url,
       publishedAt: v.publishedAt,
       fetchedAt: now,

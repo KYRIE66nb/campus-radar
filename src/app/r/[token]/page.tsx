@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
+import { Share2 } from "lucide-react";
 import { db } from "@/db";
 import { reports, settings } from "@/db/schema";
 
@@ -29,10 +30,11 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
   return (
     <div>
-      <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-700">
-        🔗 公开分享页 · {s.school} · 由 CampusRadar 生成 · 非登录状态也可查看
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-accent-soft px-4 py-2.5 text-xs font-medium text-blue-800">
+        <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+        公开分享页 · {s.school} · 由 CampusRadar 生成 · 无需登录即可查看
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4" dangerouslySetInnerHTML={{ __html: report.html }} />
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white" dangerouslySetInnerHTML={{ __html: report.html }} />
     </div>
   );
 }

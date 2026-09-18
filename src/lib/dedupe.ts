@@ -12,6 +12,19 @@ const NOISE_CHARS = /[\s【】\[\]（）()《》<>「」“”"'‘’·—\-_|,
 const SCHOOL_PREFIX =
   /^(清华大学|清华|中国科学技术大学|中国科大|中科大|上海交通大学|上海交大|北京大学|北大)/u;
 
+/**
+ * 清洗来源标题的站点尾巴：如「…_手机网易网」「…|清华大学|数据|成像」（媒体 SEO 后缀）。
+ * 清理后过短则保留原文。
+ */
+export function cleanTitle(t: string): string {
+  const raw = t.trim();
+  let s = raw;
+  s = s.replace(/\s*[|｜]([^|｜]{1,14})([|｜][^|｜]{1,14})+\s*$/u, ""); // 尾部多段竖线标签
+  s = s.replace(/\s*_([^_]{1,20})$/u, ""); // 尾部下划线站点名
+  s = s.trim();
+  return s.length >= 8 ? s : raw;
+}
+
 export function normalizeTitle(t: string): string {
   let s = t.normalize("NFKC").toLowerCase();
   s = s.replace(NOISE_CHARS, "");

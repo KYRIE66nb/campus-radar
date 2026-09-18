@@ -118,21 +118,20 @@ const TREND_COLOR: Record<Classified["trend"], string> = { up: "#dc2626", flat: 
 function statusBox(input: ComposeInput): { html: string; text: string } {
   const { stats } = input;
   const failed = stats.sources.filter((s) => !s.ok);
-  const okLine = `来源 ${stats.okSources}/${stats.okSources + stats.failSources} 正常 · 获取 ${stats.totalFetched} 条 · 本次新增 ${stats.totalNew} 条`;
+  const line1 = `来源 ${stats.okSources}/${stats.okSources + stats.failSources} 正常 · 本次获取 ${stats.totalFetched} 条 · 新入库 ${stats.totalNew} 条`;
+  const line2 = `今日话题：新出现 ${stats.topicsNew} · 重要更新 ${stats.topicsUpdated} · 持续关注 ${stats.topicsOngoing} · 低相关 ${stats.topicsLow}`;
   const html =
-    `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:13px;color:#334155;">` +
-    esc(okLine) +
+    `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:13px;color:#334155;line-height:1.8;">` +
+    esc(line1) +
+    `<br/>${esc(line2)}` +
     (failed.length
-      ? `<div style="margin-top:6px;color:#b91c1c;">⚠ 获取失败来源：${failed
-          .map((f) => `${esc(f.name)}（${esc(f.error ?? "未知错误")}），已自动跳过`)
-          .join("；")}</div>`
+      ? `<div style="margin-top:6px;color:#b91c1c;">⚠ 获取失败来源：${failed.map((f) => esc(f.name)).join("、")}（已自动跳过，详见文末失败提示）</div>`
       : "") +
     `</div>`;
   const text =
-    okLine +
-    (failed.length
-      ? `\n⚠ 获取失败来源：${failed.map((f) => `${f.name}（${f.error ?? ""}）`).join("；")}（已跳过，不影响日报）`
-      : "");
+    line1 +
+    `\n${line2}` +
+    (failed.length ? `\n⚠ 获取失败来源：${failed.map((f) => f.name).join("、")}（已跳过，详见文末）` : "");
   return { html, text };
 }
 
@@ -196,8 +195,8 @@ export function composeReport(input: ComposeInput): ComposedReport {
     ongoing: { icon: "⏳", color: "#2563eb" },
     low: { icon: "📎", color: "#6b7280" },
   };
-  // 日报保持简洁：每区按热度截断展示，其余折叠为标题列表
-  const SECTION_LIMIT: Record<TopicStatus, number> = { new: 8, updated: 5, ongoing: 5, low: 30 };
+  // 日报保持简洁：每区按热度截断展示，其余折叠为标题列表（最多列 10 条）
+  const SECTION_LIMIT: Record<TopicStatus, number> = { new: 6, updated: 5, ongoing: 5, low: 30 };
 
   const sb = statusBox(input);
 
@@ -231,31 +230,42 @@ export function composeReport(input: ComposeInput): ComposedReport {
     html +=
       `<div style="margin:22px 0 6px;font-size:16px;font-weight:700;color:${meta.color};">${meta.icon} ${STATUS_LABEL[status]}（${list.length}）</div>`;
     text += `\n${meta.icon} ${STATUS_LABEL[status]}（${list.length}）\n`;
-    if (status === "low" || folded.length > 0) {
-      const compactList = status === "low" ? shown : folded;
-      // 低相关/被折叠内容：紧凑标题列表
-      html +=
-        `<div style="font-size:13px;color:#4b5563;line-height:1.9;">` +
-        compactList
-          .map(
-            (c) =>
-              `· ${esc(c.view.title)} ${badge(c.evidence)}${c.lowRelevance ? '<span style="font-size:11px;color:#9ca3af;">（不含关注关键词）</span>' : ""}`,
-          )
-          .join("<br/>") +
-        (folded.length > 0 && status !== "low"
-          ? `<br/><span style="font-size:12px;color:#9ca3af;">已按热度折叠 ${folded.length} 条较低热度内容（完整列表见网页版）</span>`
-          : "") +
-        `</div>`;
-      text +=
-        compactList.map((c) => `· ${c.view.title} [${EVIDENCE_LABEL[c.evidence]}]`).join("\n") +
-        (folded.length > 0 && status !== "low" ? `\n（已按热度折叠 ${folded.length} 条）` : "") +
-        "\n";
-    }
+
+    // 1) 先渲染精选话题卡（低相关区无卡，仅紧凑列表）
     if (status !== "low") {
       for (const c of shown) {
         html += topicBlock(c, input);
         text += topicText(c, input) + "\n";
       }
+    }
+
+    // 2) 再渲染折叠的紧凑列表（低相关 = 全部；其他区 = 按热度折叠的余量，最多展示 10 条）
+    const compactList = status === "low" ? shown : folded.slice(0, 10);
+    const overflow = list.length - shown.length;
+    if (compactList.length > 0) {
+      html +=
+        `<div style="font-size:13px;color:#4b5563;line-height:1.9;">` +
+        compactList
+          .map(
+            (c) =>
+              `· ${esc(c.view.title)} ${badge(c.evidence)}${
+                status === "low" && c.lowRelevance
+                  ? '<span style="font-size:11px;color:#9ca3af;">（不含关注关键词）</span>'
+                  : ""
+              }`,
+          )
+          .join("<br/>") +
+        (status === "low" && overflow > 0
+          ? `<br/><span style="font-size:12px;color:#9ca3af;">…其余 ${overflow} 条略</span>`
+          : "") +
+        (status !== "low" && folded.length > 0
+          ? `<br/><span style="font-size:12px;color:#9ca3af;">已按热度折叠 ${folded.length} 条较低热度内容，以上展示其中前 ${compactList.length} 条（完整列表见网页版）</span>`
+          : "") +
+        `</div>`;
+      text +=
+        compactList.map((c) => `· ${c.view.title} [${EVIDENCE_LABEL[c.evidence]}]`).join("\n") +
+        (status !== "low" && folded.length > 0 ? `\n（已按热度折叠 ${folded.length} 条）` : "") +
+        "\n";
     }
   }
 

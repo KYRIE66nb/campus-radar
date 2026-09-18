@@ -12,8 +12,9 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold">订阅设置</h1>
-      <p className="mb-6 mt-1 text-sm text-slate-500">学校、关键词、收件邮箱、发送时间与邮件开关。</p>
+      <p className="text-xs font-medium uppercase tracking-widest text-slate-400">个人偏好</p>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">订阅设置</h1>
+      <p className="mb-7 mt-1.5 text-sm text-slate-500">学校、关键词、收件邮箱、发送时间与邮件开关。</p>
       <SettingsForm
         initial={{
           school: s.school,

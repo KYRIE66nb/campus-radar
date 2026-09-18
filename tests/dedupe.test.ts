@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { bigrams, clusterItems, containment, lcsLen, normalizeTitle, similarTitles } from "@/lib/dedupe";
+import { bigrams, cleanTitle, clusterItems, containment, lcsLen, normalizeTitle, similarTitles } from "@/lib/dedupe";
+
+describe("cleanTitle 去站点尾巴", () => {
+  it("去除下划线站点后缀", () => {
+    expect(cleanTitle("某高校发布最新通知_手机网易网")).toBe("某高校发布最新通知");
+  });
+  it("去除多段竖线标签尾巴", () => {
+    expect(cleanTitle("对话清华某位教授谈科研选择|清华大学|数据|成像|脑科学")).toBe("对话清华某位教授谈科研选择");
+  });
+  it("清理后过短则保留原文", () => {
+    expect(cleanTitle("短题|标签")).toBe("短题|标签");
+  });
+});
 
 describe("normalizeTitle", () => {
   it("去除标点与全角空格并小写", () => {

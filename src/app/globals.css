@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
+/*
+ * CampusRadar 设计系统（ui-ux-pro-max · Minimalism & Swiss）
+ * 语义色仅用于状态，且永远伴随文字/图标，不单靠颜色传达信息。
+ * 交互反馈 150–250ms；prefers-reduced-motion 下全部禁用。
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 品牌墨色（导航/主按钮/标题） */
+  --ink: #0f172a;
+  /* 新闻红：仅用于「热/新」语义与主动作 */
+  --hot: #dc2626;
+  --hot-soft: #fef2f2;
+  /* 链接/强调蓝 */
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --surface: #f8fafc;
+  --line: #e2e8f0;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-hot: var(--hot);
+  --color-hot-soft: var(--hot-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --font-sans: var(--font-inter), -apple-system, "PingFang SC", "HarmonyOS Sans SC",
+    "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "tnum" 1; /* 数字等宽：统计卡与表格对齐 */
+}
+
+/* 键盘可达性：统一可见焦点环 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: #dbeafe;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

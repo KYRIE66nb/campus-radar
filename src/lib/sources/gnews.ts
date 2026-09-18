@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import { cleanTitle } from "../dedupe";
 import type { NewsItem, SourceAdapter } from "./types";
 
 const parser = new XMLParser({
@@ -25,6 +26,7 @@ export function parseGnewsXml(xml: string, sourceId: string, now: Date = new Dat
       const suffix = ` - ${String(media).trim()}`;
       if (title.endsWith(suffix)) title = title.slice(0, -suffix.length);
     }
+    title = cleanTitle(title);
     const pub = it.pubDate ? new Date(String(it.pubDate)) : null;
     items.push({
       sourceId,
