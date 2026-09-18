@@ -1,0 +1,21 @@
+name: hourly-dispatch
+on:
+  schedule:
+    # 每小时第 5 分钟（UTC）补跑用户自定义发送时间；Vercel Cron 负责每日 08:30（北京）兜底
+    - cron: "5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call cron dispatch
+        run: |
+          set -e
+          echo "→ $TOOL_URL/api/cron/dispatch"
+          curl -sS -f -X POST "$TOOL_URL/api/cron/dispatch" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            --max-time 120 | head -c 1000
+        env:
+          TOOL_URL: ${{ secrets.TOOL_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
